@@ -3,13 +3,12 @@
     "target": "ES2020",
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "types": ["cypress"],
     "module": "ESNext",
     "skipLibCheck": true,
     "baseUrl": "src",
     "allowSyntheticDefaultImports": true,
-    "types": ["cypress"],
     "allowImportingTsExtensions": true,
-
 
     /* Bundler mode */
     "moduleResolution": "node",
@@ -23,7 +22,7 @@
     "noUnusedLocals": true,
     "noImplicitAny": false,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["src", "cypress/e2e/3-order/order-cy.ts", "**/*.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]

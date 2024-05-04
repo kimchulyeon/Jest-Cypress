@@ -1,6 +1,4 @@
 import "@testing-library/jest-dom";
-
-import * as nock from "nock";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   fireEvent,
@@ -12,33 +10,18 @@ import {
 import LoginPage from "../pages/LoginPage";
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import useLogin from "../hooks/useLogin";
+import * as nock from "nock";
 
 const queryClient = new QueryClient({
   defaultOptions: {},
 });
 
-const wrapper = ({ children }) => (
-  <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-);
-
 describe("로그인 테스트", () => {
+  // given
   beforeEach(() => {
-    jest.spyOn(console, "error").mockImplementation(() => {});
-  });
+    jest.spyOn(console, "error").mockImplementation(() => {}); // console.error 무시
 
-  afterAll(() => {
-    jest.restoreAllMocks();
-  });
-
-  test("로그인에 실패하면 에러메세지가 나타난다", async () => {
-    //given - 로그인 화면이 그려진다
-    const routes = [
-      {
-        path: "/login",
-        element: <LoginPage />,
-      },
-    ];
-
+    const routes = [{ path: "/login", element: <LoginPage /> }];
     const router = createMemoryRouter(routes, {
       initialEntries: ["/login"],
       initialIndex: 0,
@@ -49,29 +32,39 @@ describe("로그인 테스트", () => {
         <RouterProvider router={router} />
       </QueryClientProvider>
     );
+  });
 
-    // when - 사용자가 로그인에 실패한다
-    nock("https://server.byeongjinkang.com")
+  afterAll(() => {
+    jest.clearAllMocks();
+  });
+
+  test("로그인에 실패하면 에러메시지가 뜬다.", async () => {
+    // when
+    const wrapper = ({ children }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    nock("http://inflearn.byeongjinkang.com")
       .post("/user/login/", {
         username: "wrong@email.com",
-        password: "wrongPassword",
+        password: "wrong-password",
       })
       .reply(400, { msg: "NO_SUCH_USER" });
 
     const emailInput = screen.getByLabelText("이메일");
     const passwordInput = screen.getByLabelText("비밀번호");
+    const loginButton = screen.getByRole("button", { name: "로그인" });
 
     fireEvent.change(emailInput, { target: { value: "wrong@email.com" } });
-    fireEvent.change(passwordInput, { target: { value: "wrongPassword" } });
+    fireEvent.change(passwordInput, { target: { value: "wrong-password" } });
 
-    const loginButton = screen.getByRole("button", { name: "로그인" });
     fireEvent.click(loginButton);
 
     const { result } = renderHook(() => useLogin(), { wrapper });
-
-    // then - 에러메세지가 나타남
     await waitFor(() => result.current.isError);
-    const errorMessage = await screen.findByTestId("error-message");
-    expect(errorMessage).toBeInTheDocument();
+    const errMessage = await screen.findByTestId("error-message");
+    expect(errMessage).toBeInTheDocument();
+
+    // then
   });
 });
